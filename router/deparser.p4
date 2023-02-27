@@ -1,7 +1,11 @@
 control CommonDeparserImpl(packet_out packet,
                            inout headers hdr)
 {
-    apply {}
+    apply {
+        packet.emit(hdr.ethernet);
+        packet.emit(hdr.ip4);
+        packet.emit(hdr.ip6);
+    }
 }
 
 control IngressDeparserImpl(packet_out buffer,
