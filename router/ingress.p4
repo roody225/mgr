@@ -3,5 +3,143 @@ control ingress(inout headers hdr,
                 in    psa_ingress_input_metadata_t  istd,
                 inout psa_ingress_output_metadata_t ostd)
 {
-    apply {}
+    action setup_action() {
+        meta.process = PROCESS_GO;
+        ostd.clone = false;
+    }
+
+    action normal_path_to_kernel() {
+        ostd.drop = false;
+        ostd.egress_port = 0;
+
+        meta.process = PROCESS_STOP;
+    }
+
+    action no_action() {
+        // do nothing
+    }
+
+    table forward_local_table_ip4 {
+        key = {
+            hdr.ip4.dstAddr: exact;
+        }
+        actions = {
+            normal_path_to_kernel;
+            no_action;
+        }
+        default_action = no_action();
+        size = 1024;
+    }
+
+    table forward_local_table_ip6 {
+        key = {
+            hdr.ip6.dstAddr: exact;
+        }
+        actions = {
+            normal_path_to_kernel;
+            no_action;
+        }
+        default_action = no_action();
+        size = 1024;
+    }
+
+    action forward_ip4(PortId_t port, bit<32> via) {
+        if (via == 0) {
+            meta.viaIP4 = hdr.ip4.dstAddr;
+        } else {
+            meta.viaIP4 = via;
+        }
+
+        ostd.drop = false;
+        ostd.egress_port = port;
+    }
+
+    table routing_table_ip4 {
+        key = {
+            hdr.ip4.dstAddr: lpm;
+        }
+        actions = {
+            normal_path_to_kernel;
+            forward_ip4;
+        }
+        default_action = normal_path_to_kernel();
+        size = 1024;
+    }
+
+    action forward_ip6(PortId_t port, bit<128> via) {
+        if (via == 0) {
+            meta.viaIP6 = hdr.ip6.dstAddr;
+        } else {
+            meta.viaIP6 = via;
+        }
+
+        ostd.drop = false;
+        ostd.egress_port = port;
+    }
+
+    table routing_table_ip6 {
+        key = {
+            hdr.ip6.dstAddr: lpm;
+        }
+        actions = {
+            normal_path_to_kernel;
+            forward_ip6;
+        }
+        default_action = normal_path_to_kernel();
+        size = 1024;
+    }
+
+    action set_dst_mac(bit<6> dst_mac) {
+        hdr.ethernet.dst = dst_mac;
+    }
+
+    table arp_resolve_ip4 {
+        key = {
+            meta.viaIP4: exact;
+        }
+        actions = {
+            normal_path_to_kernel;
+            set_dst_mac;
+        }
+        default_action = normal_path_to_kernel();
+        size = 1024;
+    }
+
+    table arp_resolve_ip6 {
+        key = {
+            meta.viaIP6: exact;
+        }
+        actions = {
+            normal_path_to_kernel;
+            set_dst_mac;
+        }
+        default_action = normal_path_to_kernel();
+        size = 1024;
+    }
+
+    apply {
+        setup_action();
+
+        if (!hdr.ip4.isValid() && !hdr.ip6.isValid()) {
+            normal_path_to_kernel();
+        } else {
+            if (hdr.ip4.isValid()) {
+                forward_local_table_ip4.apply();
+                if (meta.process == PROCESS_GO) {
+                    routing_table_ip4.apply();
+                }
+                if (meta.process == PROCESS_GO) {
+                    arp_resolve_ip4.apply();
+                }
+            } else {
+                forward_local_table_ip6.apply();
+                if (meta.process == PROCESS_GO) {
+                    routing_table_ip6.apply();
+                }
+                if (meta.process == PROCESS_GO) {
+                    arp_resolve_ip6.apply();
+                }
+            }
+        }
+    }
 }
