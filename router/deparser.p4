@@ -7,9 +7,9 @@ control IngressDeparserImpl(packet_out buffer,
                             in psa_ingress_output_metadata_t istd)
 {
     apply {
-        packet.emit(hdr.ethernet);
-        packet.emit(hdr.ip4);
-        packet.emit(hdr.ip6);
+        buffer.emit(hdr.ethernet);
+        buffer.emit(hdr.ip4);
+        // buffer.emit(hdr.ip6);
     }
 }
 

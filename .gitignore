@@ -1,2 +1,5 @@
 router/lib/__pycache__
 .vagrant
+*.c
+*.o
+*.bc
