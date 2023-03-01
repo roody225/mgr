@@ -8,6 +8,26 @@ control ingress(inout headers hdr,
         ostd.clone = false;
     }
 
+    action set_vrf(bit<32> vrf) {
+        meta.vrf = vrf;
+    }
+
+    action set_default_vrf() {
+        meta.vrf = MAIN_VRF;
+    }
+
+    table vrf_table {
+        key = {
+            istd.ingress_port: exact;
+        }
+        actions = {
+            set_vrf;
+            set_default_vrf;
+        }
+        default_action = set_default_vrf();
+        size = 1024;
+    }
+
     action normal_path_to_kernel() {
         ostd.drop = false;
         ostd.egress_port = 0;
@@ -57,6 +77,7 @@ control ingress(inout headers hdr,
     table routing_table_ip4 {
         key = {
             hdr.ip4.dstAddr: lpm;
+            meta.vrf: exact;
         }
         actions = {
             normal_path_to_kernel;
@@ -80,6 +101,7 @@ control ingress(inout headers hdr,
     table routing_table_ip6 {
         key = {
             hdr.ip6.dstAddr: lpm;
+            meta.vrf: exact;
         }
         actions = {
             normal_path_to_kernel;

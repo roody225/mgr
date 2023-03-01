@@ -4,10 +4,13 @@ const bit<16> HDR_ETH_TYPE_IP6 = 0x86DD;
 const bit<8> PROCESS_GO = 1;
 const bit<8> PROCESS_STOP = 0;
 
+const bit<32> MAIN_VRF = 254;
+
 struct metadata_t {
-    bit<8> process;
-    bit<32> viaIP4;
     bit<128> viaIP6;
+    bit<32> viaIP4;
+    bit<32> vrf;
+    bit<8> process;
 }
 
 struct empty_t {}
