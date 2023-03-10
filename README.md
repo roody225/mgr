@@ -30,7 +30,18 @@ vagrant ssh
 ```
 sudo ./router/run.py
 ```
-
++ insert table entries
+```
+s1 bash
+./nikss-cmd.sh
+exit
+```
++ send a packet from h1
+```
+h1 bash
+./send-packet.py
+exit
+```
 ### Cleaning
 + exit the mininet instance
 ```

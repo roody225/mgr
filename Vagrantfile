@@ -25,6 +25,19 @@ make -f p4c/backends/ebpf/runtime/kernel.mk \
   psa
 SCRIPT
 
+$nikss_build = <<SCRIPT
+sudo apt-get install -y make cmake gcc git libgmp-dev libelf-dev zlib1g-dev libjansson-dev
+cd nikss
+./build_libbpf.sh
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED=on ..
+make -j4
+sudo make install
+sudo make install_headers
+sudo ldconfig
+SCRIPT
+
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-22.04"
   config.vm.provider "virtualbox"
@@ -33,4 +46,5 @@ Vagrant.configure("2") do |config|
   config.vm.provision "tools_install", type: 'shell', privileged: false,  inline: $tools_install
   config.vm.provision "p4c_install", type: 'shell', privileged: false,  inline: $p4c_install
   config.vm.provision "p4_build", type: 'shell', privileged: false,  inline: $p4_build
+  config.vm.provision "nikss_build", type: 'shell', privileged: false,  inline: $nikss_build
 end
