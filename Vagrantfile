@@ -5,7 +5,7 @@ SCRIPT
 
 $tools_install = <<SCRIPT
 sudo apt-get -y update
-sudo apt-get -y install make gcc g++ mininet
+sudo apt-get -y install make gcc g++ mininet meson libmnl-dev
 SCRIPT
 
 $p4c_install = <<SCRIPT
