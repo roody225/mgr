@@ -12,11 +12,10 @@ src_files = [
 incdir = include_directories('inc')
 
 libmnl_dep = dependency('libmnl')
-threads_dep = dependency('threads')
 
 executable(
     'agent',
     src_files,
     include_directories : incdir,
-    dependencies : [libmnl_dep, threads_dep]
+    dependencies : [libmnl_dep]
 )
