@@ -1,5 +1,6 @@
 router/lib/__pycache__
 .vagrant
-*.c
+p4_router.c
 *.o
 *.bc
+.vscode
