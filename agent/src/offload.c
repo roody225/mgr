@@ -57,8 +57,6 @@ void *listen_loop(void *arg __attribute__((unused)))
     ssize_t bytes_received;
     struct pollfd fds;
 
-    process = true;
-
     if (pthread_mutex_init(&netlink_mutex, NULL) != 0) {
         fprintf(stderr, "ERROR: netlink mutex init failed\n");
         return NULL;
@@ -72,6 +70,7 @@ void *listen_loop(void *arg __attribute__((unused)))
     fds.fd = mnl_socket_get_fd(netlink_socket);
     fds.events = POLLIN;
 
+    process = true;
     while (process) {
         switch (poll(&fds, 1, 1000)) {
             case 0:
