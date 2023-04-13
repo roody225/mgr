@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <linux/if_ether.h>
+#include <linux/neighbour.h>
 
 struct link_message {
     uint32_t id;
@@ -22,6 +23,7 @@ struct route_message {
 
 struct neigh_message {
     uint32_t gw;
+    uint16_t state;
     uint8_t addr[ETH_ALEN];
 };
 
@@ -33,6 +35,13 @@ struct netlink_info {
         struct neigh_message nm;
     };
 };
+
+static const uint16_t ACTIVE_NEIGH_STATES_MASK =
+    NUD_REACHABLE
+    | NUD_STALE
+    | NUD_DELAY
+    | NUD_PROBE
+    | NUD_PERMANENT;
 
 int handle_newlink(const struct nlmsghdr *h, struct link_message *lm);
 int handle_dellink(const struct nlmsghdr *h, struct link_message *lm);

@@ -2,7 +2,6 @@
 #include <linux/rtnetlink.h>
 
 #include <string.h>
-#include <stdio.h>
 
 #include "netlink_handlers.h"
 
@@ -149,6 +148,8 @@ int handle_newneigh(const struct nlmsghdr *h, struct neigh_message *nm)
     if (nd->ndm_family != AF_INET)
         return MNL_CB_OK;
 
+    nm->state = nd->ndm_state;
+
     return mnl_attr_parse(h, sizeof(struct ndmsg), parse_neigh_callback, nm);
 }
 int handle_delneigh(const struct nlmsghdr *h, struct neigh_message *nm)
@@ -160,6 +161,8 @@ int handle_delneigh(const struct nlmsghdr *h, struct neigh_message *nm)
 
     if (nd->ndm_family != AF_INET)
         return MNL_CB_OK;
+
+    nm->state = nd->ndm_state;
 
     return mnl_attr_parse(h, sizeof(struct ndmsg), parse_neigh_callback, nm);
 }
