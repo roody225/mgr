@@ -2,6 +2,7 @@
 #include <linux/rtnetlink.h>
 
 #include <string.h>
+#include <stdio.h>
 
 #include "netlink_handlers.h"
 

@@ -9,6 +9,7 @@
 
 #include "offload.h"
 #include "netlink_handlers.h"
+#include "p4_handlers.h"
 
 static struct mnl_socket *netlink_socket = NULL;
 static bool process = false;
@@ -51,30 +52,56 @@ static int handle_message(const struct nlmsghdr *h, void *data)
     struct netlink_info *ni = (struct netlink_info *)data;
     int ret = MNL_CB_ERROR;
 
+    memset(ni, 0, sizeof(struct netlink_info));
+
     switch (h->nlmsg_type) {
     case RTM_NEWLINK:
         ni->type = RTM_NEWLINK;
         ret = handle_newlink(h, &(ni->lm));
+        if (ret == MNL_CB_OK) {
+            if (insert_newlink(&(ni->lm)))
+                fprintf(stderr, "ERROR: failed to insert newlink\n");
+        }
         break;
     case RTM_DELLINK:
         ni->type = RTM_DELLINK;
         ret = handle_dellink(h, &(ni->lm));
+        if (ret == MNL_CB_OK) {
+            if (insert_dellink(&(ni->lm)))
+                fprintf(stderr, "ERROR: failed to insert dellink\n");
+        }
         break;
     case RTM_NEWROUTE:
         ni->type = RTM_NEWROUTE;
         ret = handle_newroute(h, &(ni->rm));
+        if (ret == MNL_CB_OK) {
+            if (insert_newroute(&(ni->rm)))
+                fprintf(stderr, "ERROR: failed to insert newroute\n");
+        }
         break;
     case RTM_DELROUTE:
         ni->type = RTM_DELROUTE;
         ret = handle_delroute(h, &(ni->rm));
+        if (ret == MNL_CB_OK) {
+            if (insert_delroute(&(ni->rm)))
+                fprintf(stderr, "ERROR: failed to insert delroute\n");
+        }
         break;
     case RTM_NEWNEIGH:
         ni->type = RTM_NEWNEIGH;
         ret = handle_newneigh(h, &(ni->nm));
+        if (ret == MNL_CB_OK) {
+            if (insert_newneigh(&(ni->nm)))
+                fprintf(stderr, "ERROR: failed to insert newneigh\n");
+        }
         break;
     case RTM_DELNEIGH:
         ni->type = RTM_DELNEIGH;
         ret = handle_delneigh(h, &(ni->nm));
+        if (ret == MNL_CB_OK) {
+            if (insert_delneigh(&(ni->nm)))
+                fprintf(stderr, "ERROR: failed to insert delneigh\n");
+        }
         break;
     default:
         ni->type = RTM_MAX;
@@ -90,7 +117,7 @@ void *listen_loop(void *arg __attribute__((unused)))
     uint8_t buf[MNL_SOCKET_BUFFER_SIZE];
     ssize_t bytes_received;
     struct pollfd fds;
-    struct netlink_info ni = {0};
+    struct netlink_info ni;
 
     if (pthread_mutex_init(&netlink_mutex, NULL) != 0) {
         fprintf(stderr, "ERROR: netlink mutex init failed\n");
@@ -126,8 +153,6 @@ void *listen_loop(void *arg __attribute__((unused)))
             fprintf(stderr, "ERROR: recv error\n");
             break;
         }
-
-        printf("INFO: netlink message received %ld bytes\n", bytes_received);
 
         switch (mnl_cb_run(buf, bytes_received, 0, 0, handle_message, &ni)) {
             case MNL_CB_OK:
