@@ -7,6 +7,7 @@ project(
 src_files = [
     'src/main.c',
     'src/offload.c',
+    'src/netlink_handlers.c',
 ]
 
 incdir = include_directories('inc')

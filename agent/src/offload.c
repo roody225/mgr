@@ -8,6 +8,7 @@
 #include <poll.h>
 
 #include "offload.h"
+#include "netlink_handlers.h"
 
 static struct mnl_socket *netlink_socket = NULL;
 static bool process = false;
@@ -47,8 +48,41 @@ void netlink_disconnect()
 
 static int handle_message(const struct nlmsghdr *h, void *data)
 {
-    printf("INFO: handling netlink message type: %d\n", h->nlmsg_type);
-    return MNL_CB_OK;
+    struct netlink_info *ni = (struct netlink_info *)data;
+    int ret = MNL_CB_ERROR;
+
+    switch (h->nlmsg_type) {
+    case RTM_NEWLINK:
+        ni->type = RTM_NEWLINK;
+        ret = handle_newlink(h, &(ni->lm));
+        break;
+    case RTM_DELLINK:
+        ni->type = RTM_DELLINK;
+        ret = handle_dellink(h, &(ni->lm));
+        break;
+    case RTM_NEWROUTE:
+        ni->type = RTM_NEWROUTE;
+        ret = handle_newroute(h, &(ni->rm));
+        break;
+    case RTM_DELROUTE:
+        ni->type = RTM_DELROUTE;
+        ret = handle_delroute(h, &(ni->rm));
+        break;
+    case RTM_NEWNEIGH:
+        ni->type = RTM_NEWNEIGH;
+        ret = handle_newneigh(h, &(ni->nm));
+        break;
+    case RTM_DELNEIGH:
+        ni->type = RTM_DELNEIGH;
+        ret = handle_delneigh(h, &(ni->nm));
+        break;
+    default:
+        ni->type = RTM_MAX;
+        ret = MNL_CB_OK;
+        break;
+    }
+
+    return ret;
 }
 
 void *listen_loop(void *arg __attribute__((unused)))
@@ -56,6 +90,7 @@ void *listen_loop(void *arg __attribute__((unused)))
     uint8_t buf[MNL_SOCKET_BUFFER_SIZE];
     ssize_t bytes_received;
     struct pollfd fds;
+    struct netlink_info ni = {0};
 
     if (pthread_mutex_init(&netlink_mutex, NULL) != 0) {
         fprintf(stderr, "ERROR: netlink mutex init failed\n");
@@ -94,7 +129,7 @@ void *listen_loop(void *arg __attribute__((unused)))
 
         printf("INFO: netlink message received %ld bytes\n", bytes_received);
 
-        switch (mnl_cb_run(buf, bytes_received, 0, 0, handle_message, NULL)) {
+        switch (mnl_cb_run(buf, bytes_received, 0, 0, handle_message, &ni)) {
             case MNL_CB_OK:
                 break;
             case MNL_CB_STOP:
