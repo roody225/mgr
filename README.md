@@ -26,6 +26,10 @@ vagrant up
 ```
 vagrant ssh
 ```
++ run the agent
+```
+./agent/build/agent
+```
 + start mininet instance
 ```
 sudo ./router/run.py

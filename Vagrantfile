@@ -36,6 +36,14 @@ make -j4
 sudo make install
 sudo make install_headers
 sudo ldconfig
+cd
+SCRIPT
+
+$agent_build = <<SCRIPT
+cd agent
+meson setup build
+ninja -C build
+cd
 SCRIPT
 
 Vagrant.configure("2") do |config|
@@ -47,4 +55,5 @@ Vagrant.configure("2") do |config|
   config.vm.provision "p4c_install", type: 'shell', privileged: false,  inline: $p4c_install
   config.vm.provision "p4_build", type: 'shell', privileged: false,  inline: $p4_build
   config.vm.provision "nikss_build", type: 'shell', privileged: false,  inline: $nikss_build
+  config.vm.provision "agent_build", type: 'shell', privileged: false,  inline: $agent_build
 end
