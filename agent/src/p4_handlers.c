@@ -62,7 +62,7 @@ int insert_newroute(struct route_message *rm)
 
         key[0].val = htonl(rm->addr);
         key[0].type = IP4_ADDR;
-    } else if ((rm->gw == 0) || (rm->dev == 0)) {
+    } else if (rm->dev == 0) {
         return 0;
     } else {
         spec.table_name = "ingress_routing_table_ip4";

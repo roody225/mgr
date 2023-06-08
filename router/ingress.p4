@@ -64,10 +64,10 @@ control ingress(inout headers hdr,
     // }
 
     action forward_ip4(PortId_t port, bit<32> via) {
-        if (via == 0) {
-            meta.viaIP4 = hdr.ip4.dstAddr;
-        } else {
+        if (via != 0) {
             meta.viaIP4 = via;
+        } else {
+            meta.viaIP4 = 0;
         }
 
         ostd.drop = false;
@@ -140,17 +140,17 @@ control ingress(inout headers hdr,
     // }
 
     apply {
-        setup_action();
-        vrf_table.apply();
-
         if (!hdr.ip4.isValid() /* && !hdr.ip6.isValid() */) {
             normal_path_to_kernel();
         } else {
+            setup_action();
+            vrf_table.apply();
+
             forward_local_table_ip4.apply();
             if (meta.process == PROCESS_GO) {
                 routing_table_ip4.apply();
             }
-            if (meta.process == PROCESS_GO) {
+            if ((meta.process == PROCESS_GO) && (meta.viaIP4 != 0)) {
                 arp_resolve_ip4.apply();
             }
             // if (hdr.ip4.isValid()) {

@@ -108,7 +108,13 @@ servers=[
     :ram => 2048,
     :cpu => 2,
     :scripts => [
-      {:name => "forwarding", :script => $ipv4_forwarding_enable}
+      {:name => "forwarding", :script => $ipv4_forwarding_enable},
+      {:name => "cp_content", :script => $cp_content},
+      {:name => "tools_install", :script => $tools_install},
+      {:name => "p4c_install", :script => $p4c_install},
+      {:name => "p4_build", :script => $p4_build},
+      {:name => "nikss_build", :script => $nikss_build},
+      {:name => "agent_build", :script => $agent_build},
     ]
   }
 ]
@@ -130,11 +136,4 @@ Vagrant.configure("2") do |config|
       end
     end
   end
-
-  # config.vm.provision "cp_content", type: 'shell', privileged: false,  inline: $cp_content
-  # config.vm.provision "tools_install", type: 'shell', privileged: false,  inline: $tools_install
-  # config.vm.provision "p4c_install", type: 'shell', privileged: false,  inline: $p4c_install
-  # config.vm.provision "p4_build", type: 'shell', privileged: false,  inline: $p4_build
-  # config.vm.provision "nikss_build", type: 'shell', privileged: false,  inline: $nikss_build
-  # config.vm.provision "agent_build", type: 'shell', privileged: false,  inline: $agent_build
 end
