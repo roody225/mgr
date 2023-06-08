@@ -34,6 +34,10 @@ cd build
 cmake -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED=on ..
 make -j4
 sudo make install
+cd ..
+cp ../nikss_headers_fix.sh ./
+./nikss_headers_fix.sh
+cd build
 sudo make install_headers
 sudo ldconfig
 cd

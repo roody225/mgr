@@ -39,5 +39,6 @@ struct entry_spec {
 };
 
 int table_entry_add(struct entry_spec *entry);
+int table_entry_del(struct entry_spec *entry);
 
 #endif /* _NIKSS_HELPER_H_ */
