@@ -12,7 +12,9 @@ int insert_newlink(struct link_message *lm)
     struct entry_spec spec;
     struct match_elem key;
     struct data_elem action_data;
-    printf("INFO: new link %d table %d\n", lm->id, (lm->is_vrf_slave ? lm->vrf : RT_TABLE_MAIN));
+    printf("INFO: new link %d table %d lladdr %02x:%02x:%02x:%02x:%02x:%02x\n",
+        lm->id, (lm->is_vrf_slave ? lm->vrf : RT_TABLE_MAIN), lm->mac_addr[0],
+        lm->mac_addr[1], lm->mac_addr[2], lm->mac_addr[3], lm->mac_addr[4], lm->mac_addr[5]);
 
     spec.pipe = 0;
     spec.table_name = "ingress_vrf_table";
@@ -29,11 +31,35 @@ int insert_newlink(struct link_message *lm)
     action_data.type = U_32_DATA;
 
     table_entry_add(&spec);
+
+    spec.pipe = 0;
+    spec.table_name = "ingress_src_mac_resolve_ip4";
+    spec.action_name = "ingress_set_src_mac";
+    spec.elems = &key;
+    spec.num_elems = 1;
+    spec.data = &action_data;
+    spec.num_data = 1;
+
+    key.val = lm->id;
+    key.type = U_32;
+
+    action_data.mac[0] = lm->mac_addr[5];
+    action_data.mac[1] = lm->mac_addr[4];
+    action_data.mac[2] = lm->mac_addr[3];
+    action_data.mac[3] = lm->mac_addr[2];
+    action_data.mac[4] = lm->mac_addr[1];
+    action_data.mac[5] = lm->mac_addr[0];
+    action_data.type = MAC_DATA;
+
+    table_entry_add(&spec);
+
     return 0;
 }
 int insert_dellink(struct link_message *lm)
 {
-    printf("INFO: del link %d table %d\n", lm->id, (lm->is_vrf_slave ? lm->vrf : RT_TABLE_MAIN));
+    printf("INFO: del link %d table %d lladdr %02x:%02x:%02x:%02x:%02x:%02x\n",
+        lm->id, (lm->is_vrf_slave ? lm->vrf : RT_TABLE_MAIN), lm->mac_addr[0],
+        lm->mac_addr[1], lm->mac_addr[2], lm->mac_addr[3], lm->mac_addr[4], lm->mac_addr[5]);
     return 0;
 }
 

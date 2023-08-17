@@ -67,7 +67,7 @@ control ingress(inout headers hdr,
         if (via != 0) {
             meta.viaIP4 = via;
         } else {
-            meta.viaIP4 = 0;
+            meta.viaIP4 = hdr.ip4.dstAddr;
         }
 
         ostd.drop = false;
@@ -139,6 +139,22 @@ control ingress(inout headers hdr,
     //     size = 1024;
     // }
 
+    action set_src_mac(bit<48> src_mac) {
+        hdr.ethernet.src = src_mac;
+    }
+
+    table src_mac_resolve_ip4 {
+        key = {
+            ostd.egress_port: exact;
+        }
+        actions = {
+            normal_path_to_kernel;
+            set_src_mac;
+        }
+        default_action = normal_path_to_kernel();
+        size = 1024;
+    }
+
     apply {
         if (!hdr.ip4.isValid() /* && !hdr.ip6.isValid() */) {
             normal_path_to_kernel();
@@ -150,8 +166,11 @@ control ingress(inout headers hdr,
             if (meta.process == PROCESS_GO) {
                 routing_table_ip4.apply();
             }
-            if ((meta.process == PROCESS_GO) && (meta.viaIP4 != 0)) {
+            if (meta.process == PROCESS_GO) {
                 arp_resolve_ip4.apply();
+            }
+            if (meta.process == PROCESS_GO) {
+                src_mac_resolve_ip4.apply();
             }
             // if (hdr.ip4.isValid()) {
             //     forward_local_table_ip4.apply();

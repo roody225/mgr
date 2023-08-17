@@ -39,8 +39,19 @@ static int parse_link_info_callback(const struct nlattr *attr, void *data)
 
 static int parse_link_callback(const struct nlattr *attr, void *data)
 {
-    if (mnl_attr_get_type(attr) == IFLA_LINKINFO)
+    struct link_message *lm = (struct link_message *)data;
+    unsigned type = mnl_attr_get_type(attr);
+
+    switch (type) {
+        case IFLA_LINKINFO:
             mnl_attr_parse_nested(attr, parse_link_info_callback, data);
+            break;
+        case IFLA_ADDRESS:
+            if (mnl_attr_get_payload_len(attr) != 6)
+                break;
+            memcpy(lm->mac_addr, mnl_attr_get_payload(attr), ETH_ALEN);
+            break;
+    }
 
     return MNL_CB_OK;
 }

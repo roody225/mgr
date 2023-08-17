@@ -10,6 +10,7 @@ struct link_message {
     uint32_t vrf;
     uint8_t is_vrf_slave:1;
     uint8_t reserved:7;
+    uint8_t mac_addr[ETH_ALEN];
 };
 
 struct route_message {
