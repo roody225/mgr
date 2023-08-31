@@ -12,6 +12,7 @@ int insert_newlink(struct link_message *lm)
     struct entry_spec spec;
     struct match_elem key;
     struct data_elem action_data;
+
     printf("INFO: new link %d table %d lladdr %02x:%02x:%02x:%02x:%02x:%02x\n",
         lm->id, (lm->is_vrf_slave ? lm->vrf : RT_TABLE_MAIN), lm->mac_addr[0],
         lm->mac_addr[1], lm->mac_addr[2], lm->mac_addr[3], lm->mac_addr[4], lm->mac_addr[5]);
@@ -57,9 +58,33 @@ int insert_newlink(struct link_message *lm)
 }
 int insert_dellink(struct link_message *lm)
 {
+    struct entry_spec spec;
+    struct match_elem key;
+
     printf("INFO: del link %d table %d lladdr %02x:%02x:%02x:%02x:%02x:%02x\n",
         lm->id, (lm->is_vrf_slave ? lm->vrf : RT_TABLE_MAIN), lm->mac_addr[0],
         lm->mac_addr[1], lm->mac_addr[2], lm->mac_addr[3], lm->mac_addr[4], lm->mac_addr[5]);
+
+    spec.pipe = 0;
+    spec.table_name = "ingress_vrf_table";
+    spec.elems = &key;
+    spec.num_elems = 1;
+
+    key.val = lm->id;
+    key.type = U_32;
+
+    table_entry_del(&spec);
+
+    spec.pipe = 0;
+    spec.table_name = "ingress_src_mac_resolve_ip4";
+    spec.elems = &key;
+    spec.num_elems = 1;
+
+    key.val = lm->id;
+    key.type = U_32;
+
+    table_entry_del(&spec);
+
     return 0;
 }
 
@@ -88,7 +113,7 @@ int insert_newroute(struct route_message *rm)
 
         key[0].val = htonl(rm->addr);
         key[0].type = IP4_ADDR;
-    } else if (rm->dev == 0) {
+    } else if ((rm->dev == 0) || (rm->prefix_len == 0)) {
         return 0;
     } else {
         spec.table_name = "ingress_routing_table_ip4";
@@ -113,6 +138,8 @@ int insert_newroute(struct route_message *rm)
 }
 int insert_delroute(struct route_message *rm)
 {
+    struct entry_spec spec;
+    struct match_elem key[2];
     const size_t IP_BUF_SIZE = 20;
 	char addr[IP_BUF_SIZE], gw[IP_BUF_SIZE];
 
@@ -122,6 +149,28 @@ int insert_delroute(struct route_message *rm)
     printf("INFO: del route %s/%d dev %d gw %s table %d\n",
         addr, rm->prefix_len, rm->dev, gw, rm->vrf);
 
+    spec.pipe = 0;
+    spec.elems = key;
+    if (rm->vrf == RT_TABLE_LOCAL) {
+        spec.table_name = "ingress_forward_local_table_ip4";
+        spec.num_elems = 1;
+
+        key[0].val = htonl(rm->addr);
+        key[0].type = IP4_ADDR;
+    } else if ((rm->dev == 0) || (rm->prefix_len == 0)) {
+        return 0;
+    } else {
+        spec.table_name = "ingress_routing_table_ip4";
+        spec.num_elems = 2;
+
+        key[0].val = rm->vrf;
+        key[0].type = U_32;
+        key[1].val = htonl(rm->addr);
+        key[1].prefix_len = rm->prefix_len;
+        key[1].type = IP4_LPM;
+    }
+
+    table_entry_del(&spec);
     return 0;
 }
 
@@ -162,6 +211,8 @@ int insert_newneigh(struct neigh_message *nm)
 }
 int insert_delneigh(struct neigh_message *nm)
 {
+    struct entry_spec spec;
+    struct match_elem key;
     const size_t IP_BUF_SIZE = 20;
 	char gw[IP_BUF_SIZE];
 
@@ -170,5 +221,14 @@ int insert_delneigh(struct neigh_message *nm)
     printf("INFO: del neigh %02x:%02x:%02x:%02x:%02x:%02x gw %s\n",
         nm->addr[0], nm->addr[1], nm->addr[2], nm->addr[3], nm->addr[4], nm->addr[5], gw);
 
+    spec.pipe = 0;
+    spec.table_name = "ingress_arp_resolve_ip4";
+    spec.elems = &key;
+    spec.num_elems = 1;
+
+    key.val = htonl(nm->gw);
+    key.type = IP4_ADDR;
+
+    table_entry_del(&spec);
     return 0;
 }
