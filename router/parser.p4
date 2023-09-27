@@ -3,7 +3,7 @@
 struct headers {
     ethernet_t ethernet;
     ip4_t ip4;
-    // ip6_t ip6;
+    ip6_t ip6;
 }
 
 parser IngressParserImpl(packet_in buffer,
@@ -16,7 +16,7 @@ parser IngressParserImpl(packet_in buffer,
         buffer.extract(parsed_hdr.ethernet);
         transition select(parsed_hdr.ethernet.etherType) {
             HDR_ETH_TYPE_IP4: parse_ip4;
-            // HDR_ETH_TYPE_IP6: parse_ip6;
+            HDR_ETH_TYPE_IP6: parse_ip6;
             default: accept;
         }
     }
@@ -24,10 +24,10 @@ parser IngressParserImpl(packet_in buffer,
         buffer.extract(parsed_hdr.ip4);
         transition accept;
     }
-    // state parse_ip6 {
-    //     buffer.extract(parsed_hdr.ip6);
-    //     transition accept;
-    // }
+    state parse_ip6 {
+        buffer.extract(parsed_hdr.ip6);
+        transition accept;
+    }
 }
 
 parser EgressParserImpl(packet_in buffer,

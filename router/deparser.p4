@@ -9,7 +9,7 @@ control IngressDeparserImpl(packet_out buffer,
     apply {
         buffer.emit(hdr.ethernet);
         buffer.emit(hdr.ip4);
-        // buffer.emit(hdr.ip6);
+        buffer.emit(hdr.ip6);
     }
 }
 
