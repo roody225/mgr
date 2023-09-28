@@ -5,6 +5,8 @@
 
 #include "nikss_helper.h"
 
+static const unsigned int IPV6_ADDR_LEN = 16;
+
 static int key_setup(struct entry_spec *spec, nikss_match_key_t *mk, nikss_table_entry_t *entry)
 {
     struct match_elem *elem;
@@ -37,6 +39,21 @@ static int key_setup(struct entry_spec *spec, nikss_match_key_t *mk, nikss_table
                     return EINVAL;
                 }
                 break;
+            case IP6_ADDR:
+                nikss_matchkey_type(mk, NIKSS_EXACT);
+                if (nikss_matchkey_data(mk, (const char *)elem->binary_val, IPV6_ADDR_LEN) != NO_ERROR) {
+                    fprintf(stderr, "ERROR: cannot add key exact ipv6\n");
+                    return EINVAL;
+                }
+                break;
+            case IP6_LPM:
+                nikss_matchkey_type(mk, NIKSS_LPM);
+                if ((nikss_matchkey_data(mk, (const char *)elem->binary_val, IPV6_ADDR_LEN) != NO_ERROR) ||
+                    (nikss_matchkey_prefix_len(mk, elem->prefix_len) != NO_ERROR)) {
+                    fprintf(stderr, "ERROR: cannot add key lpm ipv6\n");
+                    return EINVAL;
+                }
+                break;
         }
 
         error_code = nikss_table_entry_matchkey(entry, mk);
@@ -60,6 +77,13 @@ static int action_setup(struct entry_spec *spec, nikss_action_param_t *param,
             case IP4_DATA:
                 if (nikss_action_param_create(param, (const char *)&(data->val), sizeof(data->val)) != NO_ERROR) {
                     fprintf(stderr, "ERROR: cannot add action data ip4 addr %d\n", data->val);
+                    nikss_action_param_free(param);
+                    return EINVAL;
+                }
+                break;
+            case IP6_DATA:
+                if (nikss_action_param_create(param, (const char *)data->binary_val, IPV6_ADDR_LEN) != NO_ERROR) {
+                    fprintf(stderr, "ERROR: cannot add action data ip6\n");
                     nikss_action_param_free(param);
                     return EINVAL;
                 }
