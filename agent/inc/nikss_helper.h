@@ -7,6 +7,8 @@
 enum key_type {
     IP4_ADDR,
     IP4_LPM,
+    IP6_ADDR,
+    IP6_LPM,
     U_32,
 };
 
@@ -14,10 +16,12 @@ struct match_elem {
     enum key_type type;
     uint32_t val;
     uint8_t prefix_len;
+    uint8_t *binary_val;
 };
 
 enum data_type {
     IP4_DATA,
+    IP6_DATA,
     U_32_DATA,
     MAC_DATA,
 };
@@ -26,6 +30,7 @@ struct data_elem {
     enum data_type type;
     uint32_t val;
     uint8_t mac[ETH_ALEN];
+    uint8_t *binary_val;
 };
 
 struct entry_spec {
