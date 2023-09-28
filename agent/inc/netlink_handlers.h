@@ -5,6 +5,8 @@
 #include <linux/if_ether.h>
 #include <linux/neighbour.h>
 
+#define IPV6_ADDR_LEN 16
+
 struct link_message {
     uint32_t id;
     uint32_t vrf;
@@ -20,12 +22,17 @@ struct route_message {
     uint32_t gw;
     uint8_t is_ip4:1;
     uint8_t prefix_len:7;
+    uint8_t addr6[IPV6_ADDR_LEN];
+    uint8_t gw6[IPV6_ADDR_LEN];
 };
 
 struct neigh_message {
     uint32_t gw;
     uint16_t state;
     uint8_t addr[ETH_ALEN];
+    uint8_t gw6[IPV6_ADDR_LEN];
+    uint8_t is_ip4:1;
+    uint8_t reserved:7;
 };
 
 struct netlink_info {
