@@ -40,7 +40,13 @@ int main()
     rtm.rtm_family = AF_INET;
     send_netlink_message(RTM_GETROUTE, &rtm, sizeof(rtm), NLM_F_REQUEST | NLM_F_DUMP);
 
+    rtm.rtm_family = AF_INET6;
+    send_netlink_message(RTM_GETROUTE, &rtm, sizeof(rtm), NLM_F_REQUEST | NLM_F_DUMP);
+
     ndm.ndm_family = AF_INET;
+    send_netlink_message(RTM_GETNEIGH, &ndm, sizeof(ndm), NLM_F_REQUEST | NLM_F_DUMP);
+
+    ndm.ndm_family = AF_INET6;
     send_netlink_message(RTM_GETNEIGH, &ndm, sizeof(ndm), NLM_F_REQUEST | NLM_F_DUMP);
 
     pthread_join(thread_id, NULL);
