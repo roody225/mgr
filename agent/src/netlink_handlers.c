@@ -5,6 +5,16 @@
 
 #include "netlink_handlers.h"
 
+static void ipv6_addr_reverse(uint8_t addr[IPV6_ADDR_LEN])
+{
+    uint8_t tmp;
+    for (int i = 0; i < IPV6_ADDR_LEN / 2; ++i) {
+        tmp = addr[i];
+        addr[i] = addr[IPV6_ADDR_LEN - 1 - i];
+        addr[IPV6_ADDR_LEN - 1 - i] = tmp;
+    }
+}
+
 static int parse_link_info_data_vrf_callback(const struct nlattr *attr, void *data)
 {
     struct link_message *lm = (struct link_message *)data;
@@ -90,14 +100,18 @@ static int parse_route_callback(const struct nlattr *attr, void *data)
         case RTA_DST:
             if (rm->is_ip4)
                 rm->addr = mnl_attr_get_u32(attr);
-            else
+            else {
                 memcpy(rm->addr6, mnl_attr_get_payload(attr), IPV6_ADDR_LEN);
+                ipv6_addr_reverse(rm->addr6);
+            }
             break;
         case RTA_GATEWAY:
             if (rm->is_ip4)
                 rm->gw = mnl_attr_get_u32(attr);
-            else
+            else {
                 memcpy(rm->gw6, mnl_attr_get_payload(attr), IPV6_ADDR_LEN);
+                ipv6_addr_reverse(rm->gw6);
+            }
             break;
     }
 
@@ -161,8 +175,10 @@ static int parse_neigh_callback(const struct nlattr *attr, void *data)
         case NDA_DST:
             if (nm->is_ip4)
                 nm->gw = mnl_attr_get_u32(attr);
-            else
+            else {
                 memcpy(nm->gw6, mnl_attr_get_payload(attr), IPV6_ADDR_LEN);
+                ipv6_addr_reverse(nm->gw6);
+            }
             break;
         case NDA_LLADDR:
             memcpy(nm->addr, mnl_attr_get_payload(attr), ETH_ALEN);

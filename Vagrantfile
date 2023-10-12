@@ -117,9 +117,9 @@ servers=[
       {:name => "cp_content", :script => $cp_content},
       {:name => "tools_install", :script => $tools_install},
       {:name => "p4c_install", :script => $p4c_install},
-      {:name => "p4_build", :script => $p4_build},
       {:name => "nikss_build", :script => $nikss_build},
       {:name => "agent_build", :script => $agent_build},
+      {:name => "p4_build", :script => $p4_build},
     ]
   }
 ]

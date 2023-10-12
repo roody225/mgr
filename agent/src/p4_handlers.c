@@ -100,8 +100,8 @@ int insert_newroute(struct route_message *rm)
         inet_ntop(AF_INET, &(rm->addr), addr, IP_BUF_SIZE);
         inet_ntop(AF_INET, &(rm->gw), gw, IP_BUF_SIZE);
     } else {
-        inet_ntop(AF_INET, rm->addr6, addr, IP_BUF_SIZE);
-        inet_ntop(AF_INET, rm->gw6, gw, IP_BUF_SIZE);
+        inet_ntop(AF_INET6, rm->addr6, addr, IP_BUF_SIZE);
+        inet_ntop(AF_INET6, rm->gw6, gw, IP_BUF_SIZE);
     }
 
     printf("INFO: new route %s/%d dev %d gw %s table %d\n",
@@ -178,8 +178,8 @@ int insert_delroute(struct route_message *rm)
         inet_ntop(AF_INET, &(rm->addr), addr, IP_BUF_SIZE);
         inet_ntop(AF_INET, &(rm->gw), gw, IP_BUF_SIZE);
     } else {
-        inet_ntop(AF_INET, rm->addr6, addr, IP_BUF_SIZE);
-        inet_ntop(AF_INET, rm->gw6, gw, IP_BUF_SIZE);
+        inet_ntop(AF_INET6, rm->addr6, addr, IP_BUF_SIZE);
+        inet_ntop(AF_INET6, rm->gw6, gw, IP_BUF_SIZE);
     }
 
     printf("INFO: del route %s/%d dev %d gw %s table %d\n",
