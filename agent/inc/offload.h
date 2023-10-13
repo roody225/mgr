@@ -9,6 +9,7 @@
 #define MULTICAST_GROUPS \
     nl_mgrp(RTNLGRP_LINK) \
     | nl_mgrp(RTNLGRP_IPV4_ROUTE) \
+    | nl_mgrp(RTNLGRP_IPV6_ROUTE) \
     | nl_mgrp(RTNLGRP_NEIGH)
 
 int netlink_connect();
