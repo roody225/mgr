@@ -17,6 +17,7 @@ sudo apt-get -y install p4lang-p4c
 SCRIPT
 
 $p4_build = <<SCRIPT
+cp /vagrant/p4_router.c ./
 make -f p4c/backends/ebpf/runtime/kernel.mk \
   BPFOBJ=p4_router.o \
   P4FILE=router/top.p4 \
@@ -50,17 +51,23 @@ ninja -C build
 cd
 SCRIPT
 
-$ipv4_forwarding_enable = <<SCRIPT
+$ip_forwarding_enable = <<SCRIPT
 sudo sysctl -w net.ipv4.ip_forward=1
 sudo sysctl -w net.ipv6.conf.all.forwarding=1
+sudo ip -6 addr add 11::1/24 dev eth1
+sudo ip -6 addr add 22::1/24 dev eth2
 SCRIPT
 
 $host1_route = <<SCRIPT
 sudo ip r add 192.168.200.0/24 via 192.168.100.1
+sudo ip -6 addr add 11::5/24 dev enp0s8
+sudo ip -6 r add 22::/24 via 11::1
 SCRIPT
 
 $host2_route = <<SCRIPT
 sudo ip r add 192.168.100.0/24 via 192.168.200.1
+sudo ip -6 addr add 22::6/24 dev enp0s8
+sudo ip -6 r add 11::/24 via 22::1
 SCRIPT
 
 $host_setup = <<SCRIPT
@@ -113,7 +120,7 @@ servers=[
     :ram => 2048,
     :cpu => 2,
     :scripts => [
-      {:name => "forwarding", :script => $ipv4_forwarding_enable},
+      {:name => "forwarding", :script => $ip_forwarding_enable},
       {:name => "cp_content", :script => $cp_content},
       {:name => "tools_install", :script => $tools_install},
       {:name => "p4c_install", :script => $p4c_install},
