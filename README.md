@@ -1,8 +1,8 @@
 # Master's thesis at University of Wroclaw
 
-title: Offloading routingu jądra linux na eBPF/XDP z użyciem języka P4 \
+title: Offloading of Linux Kernel routing to eBPF/XDP using the P4 language \
 author: Andrzej Tkaczyk \
-supervisor: Piotr Witkowski
+advisor: Piotr Witkowski
 
 ## Running the solution
 
@@ -12,50 +12,43 @@ supervisor: Piotr Witkowski
 + Vagrant (tested 2.2.19) [download link](https://developer.hashicorp.com/vagrant/downloads)
 
 ### Running
-+ clone the repository
++ update submodules
 ```
-git clone git@github.com:roody225/mgr.git
-cd mgr
 git submodule update --init --recursive
 ```
 + start the VM (this may take a few minutes)
 ```
 vagrant up
 ```
-+ login into the VM
++ login into the router VM
 ```
-vagrant ssh
+vagrant ssh router
+```
++ insert the p4 pipeline and attach eth devices
+```
+sudo nikss-ctl pipeline load id 0 p4_router.o
+sudo nikss-ctl add-port pipe 0 dev eth1
+sudo nikss-ctl add-port pipe 0 dev eth2
 ```
 + run the agent
 ```
-./agent/build/agent
+sudo ./agent/build/agent
 ```
-+ start mininet instance
++ in another terminal login into the host VM
 ```
-sudo ./router/run.py
+vagrant ssh host1
 ```
-+ insert table entries
++ check the connection
 ```
-s1 bash
-./nikss-cmd.sh
-exit
-```
-+ send a packet from h1
-```
-h1 bash
-./send-packet.py
-exit
+ping 192.168.200.12 -c 3
+ping6 22::1 -c 3
 ```
 ### Cleaning
-+ exit the mininet instance
++ exit a VM
 ```
 exit
 ```
-+ exit the VM
-```
-exit
-```
-+ remove the VM
++ remove the VMs env
 ```
 vagrant destroy
 ```
